@@ -14,6 +14,7 @@ public class Player : MonoBehaviour
     public float timeroll;
     private bool canRoll = true; // Kiểm tra xem có thể lăn hay không
 
+
     // Animation
     private Animator anim;
     private Rigidbody2D rd;
@@ -76,4 +77,6 @@ public class Player : MonoBehaviour
 
         canRoll = true;
     }
+
+ 
 }
