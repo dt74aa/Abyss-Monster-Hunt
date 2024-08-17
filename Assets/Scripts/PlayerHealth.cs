@@ -27,6 +27,7 @@ public class PlayerHealth : MonoBehaviour
         if (currentHealth <= 0)
         {
             Destroy(gameObject);
+            Time.timeScale = 0;
             MenuEndGame.SetActive(true);
         }
 

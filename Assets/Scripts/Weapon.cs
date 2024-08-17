@@ -13,6 +13,10 @@ public class Weapon : MonoBehaviour
 
     private AudioManager audioManager;
 
+    // Biến thêm vào để tìm kẻ thù
+    public float detectionRadius = 10f;  // Phạm vi tìm kẻ thù
+    private Transform targetEnemy;      // Kẻ thù được nhắm đến
+
     void Start()
     {
         audioManager = FindObjectOfType<AudioManager>();
@@ -20,11 +24,14 @@ public class Weapon : MonoBehaviour
 
     void Update()
     {
-        RotateGun();
+        FindClosestEnemy();  // Tìm kẻ thù gần nhất
+        RotateGun();         // Xoay súng về phía kẻ thù
+
         speedBuilet -= Time.deltaTime;
-        if (Input.GetMouseButton(0) && speedBuilet < 0)
+
+        if (targetEnemy != null && speedBuilet < 0)
         {
-            FireBuilet();
+            FireBuilet();  // Bắn về phía kẻ thù
             if (audioManager != null)
             {
                 audioManager.PlaySoundEffect(1);
@@ -32,11 +39,36 @@ public class Weapon : MonoBehaviour
         }
     }
 
+    // Tìm kẻ thù gần nhất trong phạm vi phát hiện
+    void FindClosestEnemy()
+    {
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, detectionRadius);
+        float closestDistance = Mathf.Infinity;
+        targetEnemy = null;
+
+        foreach (Collider2D hit in hits)
+        {
+            if (hit.CompareTag("Enemy"))  // Chỉ tìm những đối tượng có tag "Enemy"
+            {
+                float distanceToEnemy = Vector2.Distance(transform.position, hit.transform.position);
+
+                if (distanceToEnemy < closestDistance)
+                {
+                    closestDistance = distanceToEnemy;
+                    targetEnemy = hit.transform;  // Cập nhật kẻ thù gần nhất
+                }
+            }
+        }
+    }
+
+    // Xoay súng về phía kẻ thù
     void RotateGun()
     {
-        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Vector2 lookDir = mousePos - transform.position;
-        float angle = Mathf.Atan2(lookDir.y, lookDir.x) * Mathf.Rad2Deg; // Chuyển đổi từ radian sang độ
+        if (targetEnemy == null) return; // Không có kẻ thù nào để nhắm
+
+        Vector3 enemyPos = targetEnemy.position;
+        Vector2 lookDir = enemyPos - transform.position;
+        float angle = Mathf.Atan2(lookDir.y, lookDir.x) * Mathf.Rad2Deg;
 
         Quaternion rotation = Quaternion.Euler(0, 0, angle);
         transform.rotation = rotation;
@@ -54,6 +86,16 @@ public class Weapon : MonoBehaviour
         GameObject builetM = Instantiate(builet, builetPos.position, Quaternion.identity);
         Instantiate(muzzle, builetPos.position, transform.rotation, transform);
         Rigidbody2D rd = builetM.GetComponent<Rigidbody2D>();
-        rd.AddForce(transform.right * AttackBuilet, ForceMode2D.Impulse);
+
+        // Bắn đạn về phía kẻ thù
+        Vector2 direction = (targetEnemy.position - builetPos.position).normalized;
+        rd.AddForce(direction * AttackBuilet, ForceMode2D.Impulse);
+    }
+
+    // Vẽ phạm vi phát hiện kẻ thù
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, detectionRadius);
     }
 }

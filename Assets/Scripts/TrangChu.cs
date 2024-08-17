@@ -7,6 +7,7 @@ public class TrangChu : MonoBehaviour
     public void ChoiMoi()
     {
         SceneManager.LoadScene(1);
+        Time.timeScale = 1.0f;
     }
 
     public void HuongDan()
@@ -26,6 +27,7 @@ public class TrangChu : MonoBehaviour
     public void RestartGame()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        Time.timeScale = 1.0f;
     }
 
     public void ThoatMenu()
